@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A-Math Solution</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 20px;
+  background: #f3f3f3;
+}
+
+.container {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  max-width: 500px;
+  width: 100%;
+  margin-right: 20px;
+}
+
+/* Mode selection */
+.mode {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.mode button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #ddd;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.mode button.active {
+  background: #007bff;
+  color: white;
+}
+
+/* Top pawn display */
+.show-pawn-input {
+  border: 2px solid #333;
+  border-radius: 10px;
+  height: 60px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  background: #fafafa;
+}
+
+.pawn-slot {
+  min-width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  background: #e0e0e0;
+  box-shadow: 0 0 3px rgba(0,0,0,0.2);
+}
+
+.pawn-slot.locked {
+  flex: 1;
+  background: #ffc107;
+}
+
+/* Pawn buttons */
+.pawn {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.pawn input {
+  padding: 15px;
+  font-size: 18px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #eaeaea;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.pawn input:hover { background: #d6d6d6; }
+.pawn input.zero { grid-column: span 2; }
+
+/* Control buttons */
+.control {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.control input {
+  padding: 12px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+  font-weight: bold;
+}
+
+.control input:hover { background: #0056b3; }
+
+/* Lock positions */
+.lock-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.lock-pair {
+  display: flex;
+  gap: 5px;
+  width: 100%;
+}
+
+.lock-pair input {
+  flex: 1;
+  height: 35px;
+  border-radius: 6px;
+  font-weight: bold;
+  border: 1px solid #666;
+  padding: 0 8px;
+}
+
+.lock-add {
+  background: #28a745;
+  color: white;
+  width: 60px;
+  height: 35px;
+  border-radius: 6px;
+  border: 1px solid #666;
+}
+
+.lock-add:hover { background: #218838; }
+
+.lock-remove {
+  background: #dc3545;
+  color: white;
+  width: 60px;
+  height: 35px;
+  border-radius: 6px;
+  border: 1px solid #666;
+}
+
+.lock-remove:hover { background: #b02a37; }
+
+/* Solution display */
+.solutions-container {
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+  max-height: 600px;
+  overflow-y: auto;
+  width: 300px;
+}
+
+.solution-item {
+  padding: 5px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.show-more-btn {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: none;
+  background: #007bff;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.show-more-btn:hover { background: #0056b3; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="mode">
+    <button id="mode1" class="active">Bingo 8</button>
+    <button id="mode2">Bingo Fix Position</button>
+  </div>
+
+  <div class="show-pawn-input"></div>
+  <div class="lock-container" id="lockContainer"></div>
+  <button id="addLock" class="lock-add" style="margin-bottom:15px; display:none;">+</button>
+
+  <div class="pawn">
+    <input type="button" value="1">
+    <input type="button" value="2">
+    <input type="button" value="3">
+    <input type="button" value="4">
+    <input type="button" value="5">
+    <input type="button" value="+">
+  </div>
+
+  <div class="pawn">
+    <input type="button" value="6">
+    <input type="button" value="7">
+    <input type="button" value="8">
+    <input type="button" value="9">
+    <input type="button" value="10">
+    <input type="button" value="-">
+  </div>
+
+  <div class="pawn">
+    <input type="button" value="11">
+    <input type="button" value="12">
+    <input type="button" value="13">
+    <input type="button" value="14">
+    <input type="button" value="15">
+    <input type="button" value="x">
+  </div>
+
+  <div class="pawn">
+    <input type="button" value="16">
+    <input type="button" value="17">
+    <input type="button" value="18">
+    <input type="button" value="19">
+    <input type="button" value="20">
+    <input type="button" value="÷">
+  </div>
+
+  <div class="pawn">
+    <input type="button" value="0" class="zero">
+    <input type="button" value="+/-">
+    <input type="button" value="x/÷">
+    <input type="button" value="?">
+    <input type="button" value="=">
+  </div>
+
+  <div class="control">
+    <input type="button" value="Back">
+    <input type="button" value="Clear">
+    <input type="button" value="Submit">
+  </div>
+</div>
+
+<div class="solutions-container" id="solutionsContainer"></div>
+
+<script>
+// -----------------------------
+// Interface logic
+// -----------------------------
+const inputBox = document.querySelector(".show-pawn-input");
+const buttons = document.querySelectorAll(".pawn input");
+const controlButtons = document.querySelectorAll(".control input");
+const lockContainer = document.getElementById("lockContainer");
+const addLockBtn = document.getElementById("addLock");
+const solutionsContainer = document.getElementById("solutionsContainer");
+
+const mode1Btn = document.getElementById("mode1");
+const mode2Btn = document.getElementById("mode2");
+
+let filled = [];
+const maxFilled = 9;
+let mode = "mode1";
+let solutions = [];
+let shownCount = 0;
+
+// -----------------------------
+// Render top pawns
+// -----------------------------
+function render() {
+  inputBox.innerHTML = "";
+  filled.forEach((v, idx) => {
+    const div = document.createElement("div");
+    div.className = "pawn-slot";
+    div.textContent = v;
+    inputBox.appendChild(div);
+  });
+
+  inputBox.querySelectorAll(".pawn-slot").forEach(div => div.classList.remove("locked"));
+
+  document.querySelectorAll(".lock-pair").forEach(pair => {
+    const pos = parseInt(pair.querySelector(".lock-pos").value) - 1;
+    const val = pair.querySelector(".lock-val").value;
+    if(!isNaN(pos) && val !== "" && filled[pos] == val){
+      const div = inputBox.children[pos];
+      if(div) div.classList.add("locked");
+    }
+  });
+}
+
+// -----------------------------
+// Pawn click
+// -----------------------------
+buttons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (filled.length < maxFilled) {
+      filled.push(btn.value);
+      render();
+    } else {
+      alert("ใส่เบี้ยครบแล้ว!");
+    }
+  });
+});
+
+// -----------------------------
+// Control buttons
+// -----------------------------
+controlButtons.forEach(ctrl => {
+  ctrl.addEventListener("click", () => {
+    if (ctrl.value === "Back") {
+      filled.pop();
+      render();
+    } else if (ctrl.value === "Clear") {
+      filled = [];
+      lockContainer.innerHTML = "";
+      solutionsContainer.innerHTML = "";
+      solutions = [];
+      shownCount = 0;
+      render();
+    } else if (ctrl.value === "Submit") {
+      runAMath();
+    }
+  });
+});
+
+// -----------------------------
+// Mode switch
+// -----------------------------
+mode1Btn.addEventListener("click", () => {
+  mode = "mode1";
+  mode1Btn.classList.add("active");
+  mode2Btn.classList.remove("active");
+  addLockBtn.style.display = "none";
+  lockContainer.innerHTML = "";
+  render();
+});
+
+mode2Btn.addEventListener("click", () => {
+  mode = "mode2";
+  mode2Btn.classList.add("active");
+  mode1Btn.classList.remove("active");
+  addLockBtn.style.display = "inline-block";
+  if(lockContainer.children.length === 0) addLock();
+  render();
+});
+
+// -----------------------------
+// Add locked pawn
+// -----------------------------
+function addLock() {
+  const pairDiv = document.createElement("div");
+  pairDiv.className = "lock-pair";
+
+  const posInput = document.createElement("input");
+  posInput.type = "number";
+  posInput.min = 1;
+  posInput.value = 1;
+  posInput.className = "lock-pos";
+  posInput.addEventListener("focus", () => {
+    // Max = filled.length + จำนวน lock ใหม่
+    const currentLocks = lockContainer.querySelectorAll(".lock-pair").length;
+    posInput.max = 9 + currentLocks;
+  });
+
+  const valInput = document.createElement("input");
+  valInput.type = "text";
+  valInput.placeholder = "Pawn";
+  valInput.className = "lock-val";
+
+  const removeBtn = document.createElement("button");
+  removeBtn.className = "lock-remove";
+  removeBtn.textContent = "−";
+  removeBtn.addEventListener("click", () => {
+    pairDiv.remove();
+    render();
+  });
+
+  pairDiv.appendChild(posInput);
+  pairDiv.appendChild(valInput);
+  pairDiv.appendChild(removeBtn);
+  lockContainer.appendChild(pairDiv);
+
+  render();
+}
+
+addLockBtn.addEventListener("click", addLock);
+
+// -----------------------------
+// A-Math logic (simplified)
+// -----------------------------
+function Expanded(pawn) {
+  const special_map = {
+    '+/-': ['+', '-'],
+    'x/÷': ['*', '/'],
+    'x': ['*'],
+    '÷': ['/'],
+    '?': ['0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','+','-','*','/','=']
+  };
+
+  let result = [[]];
+  for (const token of pawn) {
+    if (token in special_map) {
+      result = result.flatMap(r => special_map[token].map(op => [...r, op]));
+    } else {
+      result = result.map(r => [...r, token]);
+    }
+  }
+  return result;
+}
+
+function add_pawn_js(pawn_in_rack, pawn_on_board) {
+  const pawn_on_board_zero = {};
+  for (const pair of pawn_on_board) {
+    pawn_on_board_zero[pair.position - 1] = pair.value;
+  }
+  const final_length = pawn_in_rack.length + pawn_on_board.length;
+  const final_arr = Array(final_length).fill(null);
+  for (const pos in pawn_on_board_zero) {
+    final_arr[pos] = pawn_on_board_zero[pos];
+  }
+  let idx = 0;
+  for (let i = 0; i < final_length; i++) {
+    if (final_arr[i] === null) final_arr[i] = pawn_in_rack[idx++];
+  }
+  return final_arr;
+}
+
+function Permutations(arr) {
+  if (arr.length <= 1) return [arr];
+  const result = [];
+  for (let i = 0; i < arr.length; i++) {
+    const rest = arr.slice(0,i).concat(arr.slice(i+1));
+    for (const perm of Permutations(rest)) result.push([arr[i], ...perm]);
+  }
+  return result;
+}
+
+function Condition(set_condition){
+  const define_marks=new Set(['=','+','-','*','/']);
+  const define_number_unitdigit=new Set(['0','1','2','3','4','5','6','7','8','9']);
+  const define_number_tensdigit=new Set(['10','11','12','13','14','15','16','17','18','19','20']);
+  if(!set_condition.includes('=')) return false;
+  for(let i=0;i<set_condition.length-1;i++){ const a=set_condition[i], b=set_condition[i+1]; if(define_marks.has(a)&&define_marks.has(b)&&!(a=='='&&b=='-')) return false; }
+  for(let i=0;i<set_condition.length-1;i++){ const a=set_condition[i], b=set_condition[i+1]; if(define_number_tensdigit.has(a)&&define_number_tensdigit.has(b)) return false; }
+  for(let i=0;i<set_condition.length-1;i++){ const a=set_condition[i], b=set_condition[i+1]; if(define_number_unitdigit.has(a)&&define_number_tensdigit.has(b)) return false; if(define_number_tensdigit.has(a)&&define_number_unitdigit.has(b)) return false; }
+  let count=0; for(const x of set_condition){ if(define_number_unitdigit.has(x)) count++; else count=0; if(count>3) return false; }
+  let numbers=[]; let temp="";
+  for(const x of set_condition){ if(!define_marks.has(x)) temp+=x; else{ if(temp){ numbers.push(temp); temp=""; } } }
+  if(temp) numbers.push(temp);
+  for(const num of numbers){ if(num.length>=2 && num[0]=='0') return false; }
+  for(let i=0;i<set_condition.length-1;i++){ if(set_condition[i]=='/' && set_condition[i+1]=='0') return false; }
+  for(let i=0;i<set_condition.length-1;i++){ if(set_condition[i]=='-' && set_condition[i+1]=='0') return false; }
+  if((define_marks.has(set_condition[0])&&set_condition[0]!='-') || define_marks.has(set_condition[set_condition.length-1])) return false;
+  return true;
+}
+
+function Check_Equation(set_check_equation){
+  const parts = [];
+  let temp = [];
+  for(const t of set_check_equation){
+    if(t=='='){parts.push(temp); temp=[];} else {temp.push(t);}
+  }
+  parts.push(temp);
+  try{
+    const values = parts.map(p=>eval(p.join('')));
+    return values.every(v=>v===values[0]);
+  }catch{return false;}
+}
+
+// -----------------------------
+// Run A-Math
+// -----------------------------
+function runAMath() {
+  solutions = [];
+  shownCount = 0;
+  let locks = [];
+  if (mode === 'mode2') {
+    document.querySelectorAll(".lock-pair").forEach(pair => {
+      const pos = parseInt(pair.querySelector(".lock-pos").value);
+      const val = pair.querySelector(".lock-val").value;
+      if(pos && val) locks.push({position: pos, value: val});
+    });
+  }
+
+  for(const e of Expanded(filled)){
+    const permutations = Permutations(e);
+    for(const i of permutations){
+      const all_pawn = mode==='mode2'? add_pawn_js(i,locks) : i;
+      if(Condition(all_pawn) && Check_Equation(all_pawn)){
+        solutions.push(all_pawn.join(''));
+      }
+    }
+  }
+
+  renderSolutions();
+}
+
+// -----------------------------
+// Render solutions with show more
+// -----------------------------
+function renderSolutions() {
+  solutionsContainer.innerHTML = "";
+  const maxShow = 10;
+  const show = solutions.slice(0,maxShow);
+  shownCount = show.length;
+
+  show.forEach(s=>{
+    const div = document.createElement("div");
+    div.className="solution-item";
+    div.textContent=s;
+    solutionsContainer.appendChild(div);
+  });
+
+  if(solutions.length>maxShow){
+    const btn = document.createElement("button");
+    btn.className="show-more-btn";
+    btn.textContent="ดูเพิ่มเติม";
+
+    btn.addEventListener("click",()=>{
+      btn.remove();
+      const more = solutions.slice(shownCount,shownCount+10);
+      shownCount += more.length;
+      more.forEach(s=>{
+        const div = document.createElement("div");
+        div.className="solution-item";
+        div.textContent=s;
+        solutionsContainer.appendChild(div);
+      });
+      if(shownCount<solutions.length) solutionsContainer.appendChild(btn);
+      solutionsContainer.scrollTop = solutionsContainer.scrollHeight;
+    });
+
+    solutionsContainer.appendChild(btn);
+  }
+
+  solutionsContainer.scrollTop = solutionsContainer.scrollHeight;
+}
+
+// -----------------------------
+render();
+</script>
+</body>
+</html>
