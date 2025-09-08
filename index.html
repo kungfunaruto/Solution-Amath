@@ -653,10 +653,13 @@ function Check_Equation(set_check_equation) {
     if(t=='='){parts.push(temp); temp=[];} else {temp.push(t);}
   }
   parts.push(temp);
-  try{
-    const values = parts.map(p=>eval(p.join('')));
-    return values.every(v=>v===values[0]);
-  }catch{return false;}
+  try {
+    const values = parts.map(p => eval(p.join('')));
+    const first = values[0];
+    return values.every(v => Math.abs(v - first) < 1e-9); // ใช้ tolerance
+  } catch {
+    return false;
+  }
 }
 
 // -----------------------------
